@@ -1,0 +1,54 @@
+service: simclubs-booking
+image: simclubs-booking
+
+primary_role: bot
+
+servers:
+  bot:
+    hosts:
+      - <%= ENV.fetch("DEPLOY_HOST") %>
+    proxy: false
+    cmd: "sh -lc 'node dist/migrate.js && node dist/index.js'"
+
+registry:
+  server: localhost:5555
+
+builder:
+  arch: amd64
+
+env:
+  clear:
+    NODE_ENV: production
+    LOG_LEVEL: info
+    OPENAI_MODEL: gpt-5.4-mini
+    OPENAI_FALLBACK_MODEL: gpt-5.5
+    BOOKING_EXECUTOR: dry-run
+    HEADLESS: "true"
+    SIMCLUBS_BOOKING_URL: https://simclubs.ru/booking
+    POSTGRES_USER: simclubs
+    POSTGRES_HOST: simclubs-booking-postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: simclubs_booking
+  secret:
+    - TELEGRAM_BOT_TOKEN
+    - OPENAI_API_KEY
+    - SESSION_ENCRYPTION_KEY
+    - POSTGRES_PASSWORD
+
+accessories:
+  postgres:
+    image: postgres:17
+    host: <%= ENV.fetch("DEPLOY_HOST") %>
+    env:
+      clear:
+        POSTGRES_USER: simclubs
+        POSTGRES_DB: simclubs_booking
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+
+aliases:
+  logs: app logs -f
+  shell: app exec -i "bash"
+  migrate: app exec "node dist/migrate.js"

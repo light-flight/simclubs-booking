@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.kamal/secrets
 .DS_Store
 coverage/
 playwright-report/

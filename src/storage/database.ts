@@ -16,6 +16,10 @@ export class Database {
     await this.pool.end();
   }
 
+  async query(sql: string): Promise<void> {
+    await this.pool.query(sql);
+  }
+
   async getOrCreateUser(telegramUserId: number): Promise<StoredUser> {
     const result = await this.pool.query(
       `

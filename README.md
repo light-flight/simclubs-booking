@@ -45,6 +45,28 @@ Run locally:
 npm run dev
 ```
 
+## Deploy With Kamal
+
+The deploy config is host-parameterized. After the one-time secrets setup, deploys only need the server IP.
+
+One-time server bootstrap:
+
+```bash
+cp .kamal/secrets.example .kamal/secrets
+openssl rand -base64 32 # SESSION_ENCRYPTION_KEY
+openssl rand -hex 24    # POSTGRES_PASSWORD
+# put TELEGRAM_BOT_TOKEN, OPENAI_API_KEY, SESSION_ENCRYPTION_KEY, POSTGRES_PASSWORD in .env
+bin/deploy 203.0.113.10 setup
+```
+
+Regular deploy:
+
+```bash
+bin/deploy 203.0.113.10
+```
+
+Kamal runs the bot as a non-web `bot` role with `proxy: false`, starts a Postgres accessory on the same host, and runs `node dist/migrate.js` before the bot process starts.
+
 ## Safety Defaults
 
 `BOOKING_EXECUTOR=dry-run` is the default. In this mode the bot parses and plans bookings, but never performs a real booking.

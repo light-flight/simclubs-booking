@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "Usage: bin/deploy <server-ip> [setup|deploy]"
+  exit 1
+fi
+
+export DEPLOY_HOST="$1"
+ACTION="${2:-deploy}"
+
+if [[ "$ACTION" != "setup" && "$ACTION" != "deploy" ]]; then
+  echo "Action must be setup or deploy"
+  exit 1
+fi
+
+if [[ -f .env ]]; then
+  set -a
+  source .env
+  set +a
+fi
+
+missing=()
+for name in TELEGRAM_BOT_TOKEN OPENAI_API_KEY SESSION_ENCRYPTION_KEY POSTGRES_PASSWORD; do
+  if [[ -z "${!name:-}" ]]; then
+    missing+=("$name")
+  fi
+done
+
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "Missing required deploy secrets: ${missing[*]}"
+  echo "Set them in .env or export them before running bin/deploy."
+  exit 1
+fi
+
+if command -v bundle >/dev/null 2>&1 && [[ -f Gemfile.lock ]]; then
+  exec bundle exec kamal "$ACTION"
+fi
+
+exec kamal "$ACTION"
